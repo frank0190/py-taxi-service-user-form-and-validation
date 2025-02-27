@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import generic
@@ -111,6 +111,8 @@ class DriverLicenseUpdateView(LoginRequiredMixin, generic.UpdateView):
 @login_required
 def car_add(request: HttpRequest, pk: int) -> HttpResponse:
     car = get_object_or_404(Car, pk=pk)
+    if not isinstance(request.user, Driver):
+        return HttpResponseForbidden("Only drivers can add themselves to the car.")
     car.drivers.add(request.user)
     return redirect("taxi:car-detail", pk=pk)
 
@@ -118,5 +120,7 @@ def car_add(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def car_remove(request: HttpRequest, pk: int) -> HttpResponse:
     car = get_object_or_404(Car, pk=pk)
+    if not isinstance(request.user, Driver):
+        return HttpResponseForbidden("Only drivers can remove themselves from the car.")
     car.drivers.remove(request.user)
     return redirect("taxi:car-detail", pk=pk)
